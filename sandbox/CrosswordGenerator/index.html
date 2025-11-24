@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Crossword Generator (Semua Kata Bersilangan + Clue + Export)</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+
+<body>
+    <h1>Crossword Generator (Semua Kata Bersilangan + Clue + Export)</h1>
+    <p class="hint">
+        Format input: <code>KATA:clue</code> (satu per baris). Contoh:<br>
+        <code>TAHU:makanan dari kedelai putih yang digiling halus-halus, direbus, dan dicetak.</code>
+    </p>
+
+    <div class="container">
+        <div>
+            <label for="wordsInput">Daftar kata + clue (satu baris satu entri):</label>
+            <textarea id="wordsInput" rows="18"
+                placeholder="TAHU:makanan dari kedelai putih yang digiling halus-halus, direbus, dan dicetak.&#10;TEMPE:makanan yang dibuat dari kedelai yang difermentasi.&#10;SATE:makanan dari daging yang ditusuk dan dibakar, biasanya disajikan dengan bumbu kacang.&#10;NASI:makanan pokok dari beras yang dimasak."></textarea>
+
+            <div class="small-inputs">
+                <div>
+                    <label for="wordCount">Jumlah kata yang dipakai (n):</label>
+                    <input id="wordCount" type="number" value="4" min="1" />
+                </div>
+                <div>
+                    <label for="widthInput">Width grid (kolom):</label>
+                    <input id="widthInput" type="number" value="15" min="3" />
+                </div>
+                <div>
+                    <label for="heightInput">Height grid (baris):</label>
+                    <input id="heightInput" type="number" value="15" min="3" />
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button id="generateBtn">Generate Crossword</button>
+                <button id="exportBtn" class="secondary" disabled>Export JSON</button>
+                <button id="resetBtn" class="secondary">Reset Input</button>
+            </div>
+            <div id="status"></div>
+        </div>
+
+        <div class="grid-wrapper">
+            <div id="gridContainer"></div>
+            <div id="wordsList"></div>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-box">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Sedang membuat teka-teki silang...</div>
+        </div>
+    </div>
+
+    <script src="scripts/crossword-generator.js"></script>
+    <script src="scripts/ui-handler.js"></script>
+    <script src="scripts/export-handler.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,215 @@
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 16px;
+    background: #111;
+    color: #eee;
+}
+
+h1 {
+    margin-bottom: 8px;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 1.1fr 1.2fr;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+textarea,
+input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background: #1b1b1b;
+    color: #eee;
+}
+
+label {
+    font-size: 13px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+button {
+    padding: 8px 14px;
+    border-radius: 4px;
+    border: none;
+    background: #3b82f6;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #2563eb;
+}
+
+button.secondary {
+    background: #4b5563;
+}
+
+button.secondary:hover {
+    background: #6b7280;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.small-inputs {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.small-inputs>div {
+    flex: 1;
+}
+
+#status {
+    margin-top: 8px;
+    font-size: 13px;
+    min-height: 18px;
+}
+
+.grid-wrapper {
+    overflow: auto;
+    max-height: 70vh;
+}
+
+table.grid {
+    border-collapse: collapse;
+    margin-top: 8px;
+}
+
+table.grid td {
+    width: 26px;
+    height: 26px;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #333;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 14px;
+    position: relative;
+}
+
+table.grid td.block {
+    background: #222;
+    color: #444;
+}
+
+table.grid td.letter {
+    background: #0f172a;
+}
+
+.cell-num {
+    position: absolute;
+    top: 1px;
+    left: 2px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #e5e7eb;
+    opacity: 0.9;
+}
+
+.cell-letter {
+    display: block;
+    line-height: 26px;
+}
+
+#wordsList {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: normal;
+}
+
+#wordsList h3 {
+    margin: 8px 0 4px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #e5e7eb;
+}
+
+#wordsList ul {
+    margin: 0 0 8px 0;
+    padding-left: 18px;
+}
+
+#wordsList li {
+    margin-bottom: 2px;
+}
+
+.hint {
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 4px;
+}
+
+@media (max-width: 900px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.loading-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.loading-box {
+    background: #020617;
+    border-radius: 8px;
+    padding: 16px 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 4px solid #4b5563;
+    border-top-color: #3b82f6;
+    animation: spin 0.9s linear infinite;
+}
+
+.loading-text {
+    font-size: 13px;
+    color: #e5e7eb;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
