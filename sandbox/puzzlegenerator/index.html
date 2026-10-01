@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Puzzle Generator</title>
+<style>
+  :root {
+    --bg: #0f1220;
+    --panel: #1a1f35;
+    --panel-2: #232a45;
+    --text: #e7ecff;
+    --muted: #98a2c4;
+    --accent: #5b8cff;
+    --accent-2: #37d39b;
+    --border: #2f3757;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(1200px 600px at 20% -10%, #1b2murky 0%, transparent 60%),
+                var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    padding: 24px;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    letter-spacing: .3px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    align-items: start;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 820px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+  }
+
+  .panel h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+
+  .field { margin-bottom: 14px; }
+
+  label {
+    display: block;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+
+  input[type="number"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(91,140,255,.18);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  button {
+    flex: 1;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .08s, filter .15s, opacity .15s;
+  }
+
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+
+  #btnGenerate {
+    background: linear-gradient(180deg, #6f9bff, #4a7bf0);
+    color: #fff;
+  }
+  #btnGenerate:hover:not(:disabled) { filter: brightness(1.08); }
+
+  #btnExport {
+    background: var(--panel-2);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  #btnExport:hover:not(:disabled) { filter: brightness(1.15); }
+
+  .status {
+    margin-top: 14px;
+    font-size: 12.5px;
+    color: var(--muted);
+    min-height: 18px;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .status.error { color: #ff8095; }
+  .status.ok { color: var(--accent-2); }
+
+  .stage {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+  }
+
+  #grid {
+    display: grid;
+    gap: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,.45);
+    background: #0b0e1a;
+  }
+
+  .cell {
+    border: 1px solid rgba(0,0,0,.18);
+    transition: filter .12s;
+  }
+
+  .cell:hover { filter: brightness(1.18); }
+
+  .empty-state {
+    color: var(--muted);
+    font-size: 14px;
+    text-align: center;
+    padding: 40px 10px;
+  }
+
+  .meta {
+    margin-top: 14px;
+    font-size: 12.5px;
+    color: var(--muted);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .meta b { color: var(--text); font-weight: 600; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+    justify-content: center;
+    max-width: 640px;
+  }
+
+  .legend-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    padding: 3px 7px;
+    border-radius: 20px;
+  }
+
+  .legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🧩 Puzzle Generator</h1>
+<div class="subtitle">Seeded random puzzle generator — reproducible, connected, non-overlapping pieces.</div>
+
+<div class="layout">
+
+  <!-- ============== CONTROL PANEL ============== -->
+  <div class="panel">
+    <h2>Konfigurasi</h2>
+
+    <div class="field">
+      <label for="seed">Seed</label>
+      <input type="number" id="seed" value="12345" step="1" />
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="rows">Jumlah Baris</label>
+        <input type="number" id="rows" value="8" min="1" step="1" />
+      </div>
+      <div class="field">
+        <label for="cols">Jumlah Kolom</label>
+        <input type="number" id="cols" value="8" min="1" step="1" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="minSize">Min Piece</label>
+        <input type="number" id="minSize" value="2" min="1" step="1" />
+      </div>
+      <div class="field">
+        <label for="maxSize">Max Piece</label>
+        <input type="number" id="maxSize" value="5" min="1" step="1" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="maxAttempts">Max Attempts</label>
+      <input type="number" id="maxAttempts" value="100" min="1" step="1" />
+    </div>
+
+    <div class="buttons">
+      <button id="btnGenerate">Generate</button>
+    </div>
+    <div class="buttons" style="margin-top:10px">
+      <button id="btnExport" disabled>Export JSON</button>
+    </div>
+
+    <div class="status" id="status">Siap. Klik <b>Generate</b> untuk membuat puzzle.</div>
+  </div>
+
+  <!-- ============== STAGE ============== -->
+  <div class="stage" id="stage">
+    <div class="empty-state">Belum ada puzzle.<br />Isi konfigurasi lalu klik <b>Generate</b>.</div>
+  </div>
+
+</div>
+
+<script>
+/* =====================================================================
+ * 1. SEEDED RANDOM (Mulberry32)
+ * ===================================================================== */
+class Random {
+  constructor(seed) {
+    this.state = seed >>> 0;
+  }
+
+  next() {
+    let t = (this.state += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+
+  int(min, max) {
+    return Math.floor(this.next() * (max - min + 1)) + min;
+  }
+
+  chance(probability) {
+    return this.next() < probability;
+  }
+
+  pick(array) {
+    return array[this.int(0, array.length - 1)];
+  }
+
+  shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = this.int(0, i);
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+}
+
+/* =====================================================================
+ * 2. PUZZLE GENERATOR (port dari TypeScript)
+ * ===================================================================== */
+class PuzzleGenerator {
+  constructor(config, seed) {
+    this.config = {
+      maxAttempts: 100,
+      ...config
+    };
+    this.random = new Random(seed);
+    this.validateConfig();
+  }
+
+  // ---------------------------------------------------------------
+  // PUBLIC
+  // ---------------------------------------------------------------
+  generate() {
+    for (let attempt = 0; attempt < this.config.maxAttempts; attempt++) {
+      const result = this.tryGenerate();
+      if (result) return result;
+    }
+    return null;
+  }
+
+  // ---------------------------------------------------------------
+  // GENERATOR
+  // ---------------------------------------------------------------
+  tryGenerate() {
+    const grid = this.createGrid();
+    const pieces = [];
+
+    const success = this.fillGrid(grid, pieces);
+    if (!success) return null;
+
+    return {
+      rows: this.config.rows,
+      cols: this.config.cols,
+      pieces
+    };
+  }
+
+  fillGrid(grid, pieces) {
+    const remaining = this.countEmptyCells(grid);
+    if (remaining === 0) return true;
+
+    const seed = this.getRandomEmptyCell(grid);
+    if (!seed) return true;
+
+    const possibleSizes = this.getPossiblePieceSizes(grid, remaining);
+    this.random.shuffle(possibleSizes);
+
+    for (const targetSize of possibleSizes) {
+      const candidates = this.generateFloodFillCandidates(grid, seed, targetSize);
+      this.random.shuffle(candidates);
+
+      for (const cells of candidates) {
+        this.markCells(grid, cells, -1);
+
+        const valid = this.isRemainingAreaValid(grid);
+
+        if (valid) {
+          const piece = {
+            id: pieces.length,
+            cells: cells.map((cell) => ({ x: cell.x, y: cell.y }))
+          };
+
+          pieces.push(piece);
+
+          if (this.fillGrid(grid, pieces)) {
+            return true;
+          }
+
+          pieces.pop();
+        }
+
+        this.markCells(grid, cells, 0);
+      }
+    }
+
+    return false;
+  }
+
+  // ---------------------------------------------------------------
+  // FLOOD FILL
+  // ---------------------------------------------------------------
+  generateFloodFillCandidates(grid, seed, targetSize) {
+    const results = [];
+    const attempts = 8;
+
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      const cells = this.randomFloodFill(grid, seed, targetSize);
+
+      if (cells.length === targetSize && !this.containsSameShape(results, cells)) {
+        results.push(cells);
+      }
+    }
+
+    return results;
+  }
+
+  randomFloodFill(grid, seed, targetSize) {
+    const result = [];
+    const frontier = [];
+    const visited = new Set();
+
+    const keyOf = (cell) => `${cell.x},${cell.y}`;
+
+    const addFrontier = (cell) => {
+      if (!this.isInside(cell)) return;
+      if (!this.isEmpty(grid, cell)) return;
+
+      const key = keyOf(cell);
+      if (visited.has(key)) return;
+
+      visited.add(key);
+      frontier.push(cell);
+    };
+
+    result.push({ x: seed.x, y: seed.y });
+
+    addFrontier({ x: seed.x + 1, y: seed.y });
+    addFrontier({ x: seed.x - 1, y: seed.y });
+    addFrontier({ x: seed.x, y: seed.y + 1 });
+    addFrontier({ x: seed.x, y: seed.y - 1 });
+
+    while (result.length < targetSize && frontier.length > 0) {
+      const index = this.random.int(0, frontier.length - 1);
+      const cell = frontier.splice(index, 1)[0];
+
+      if (!this.isEmpty(grid, cell)) continue;
+
+      result.push({ x: cell.x, y: cell.y });
+
+      const neighbors = this.getNeighbors(cell);
+      this.random.shuffle(neighbors);
+
+      for (const neighbor of neighbors) {
+        addFrontier(neighbor);
+      }
+    }
+
+    return result;
+  }
+
+  // ---------------------------------------------------------------
+  // VALIDATION
+  // ---------------------------------------------------------------
+  isRemainingAreaValid(grid) {
+    const components = this.findEmptyComponents(grid);
+
+    for (const component of components) {
+      const size = component.length;
+
+      if (size === 1) return false;
+      if (size < this.config.minPieceSize) return false;
+    }
+
+    return true;
+  }
+
+  findEmptyComponents(grid) {
+    const visited = new Set();
+    const components = [];
+
+    for (let y = 0; y < this.config.rows; y++) {
+      for (let x = 0; x < this.config.cols; x++) {
+        const cell = { x, y };
+
+        if (!this.isEmpty(grid, cell)) continue;
+
+        const key = `${x},${y}`;
+        if (visited.has(key)) continue;
+
+        const component = [];
+        const queue = [cell];
+        visited.add(key);
+
+        while (queue.length > 0) {
+          const current = queue.shift();
+          component.push(current);
+
+          for (const neighbor of this.getNeighbors(current)) {
+            if (!this.isInside(neighbor)) continue;
+            if (!this.isEmpty(grid, neighbor)) continue;
+
+            const neighborKey = `${neighbor.x},${neighbor.y}`;
+            if (visited.has(neighborKey)) continue;
+
+            visited.add(neighborKey);
+            queue.push(neighbor);
+          }
+        }
+
+        components.push(component);
+      }
+    }
+
+    return components;
+  }
+
+  // ---------------------------------------------------------------
+  // SIZE SELECTION
+  // ---------------------------------------------------------------
+  getPossiblePieceSizes(grid, remaining) {
+    const result = [];
+
+    for (let size = this.config.minPieceSize; size <= this.config.maxPieceSize; size++) {
+      if (size > remaining) continue;
+
+      const remainingAfter = remaining - size;
+
+      // Tidak boleh meninggalkan 1 cell.
+      if (remainingAfter === 1) continue;
+
+      result.push(size);
+    }
+
+    return result;
+  }
+
+  // ---------------------------------------------------------------
+  // GRID
+  // ---------------------------------------------------------------
+  createGrid() {
+    return Array.from({ length: this.config.rows }, () =>
+      Array(this.config.cols).fill(0)
+    );
+  }
+
+  markCells(grid, cells, value) {
+    for (const cell of cells) {
+      grid[cell.y][cell.x] = value;
+    }
+  }
+
+  isEmpty(grid, cell) {
+    return grid[cell.y][cell.x] === 0;
+  }
+
+  isInside(cell) {
+    return (
+      cell.x >= 0 &&
+      cell.x < this.config.cols &&
+      cell.y >= 0 &&
+      cell.y < this.config.rows
+    );
+  }
+
+  getNeighbors(cell) {
+    return [
+      { x: cell.x + 1, y: cell.y },
+      { x: cell.x - 1, y: cell.y },
+      { x: cell.x, y: cell.y + 1 },
+      { x: cell.x, y: cell.y - 1 }
+    ];
+  }
+
+  getRandomEmptyCell(grid) {
+    const cells = [];
+
+    for (let y = 0; y < this.config.rows; y++) {
+      for (let x = 0; x < this.config.cols; x++) {
+        if (grid[y][x] === 0) cells.push({ x, y });
+      }
+    }
+
+    if (cells.length === 0) return null;
+
+    return this.random.pick(cells);
+  }
+
+  countEmptyCells(grid) {
+    let count = 0;
+
+    for (let y = 0; y < this.config.rows; y++) {
+      for (let x = 0; x < this.config.cols; x++) {
+        if (grid[y][x] === 0) count++;
+      }
+    }
+
+    return count;
+  }
+
+  // ---------------------------------------------------------------
+  // UTILITY
+  // ---------------------------------------------------------------
+  containsSameShape(shapes, candidate) {
+    const candidateKey = this.getShapeKey(candidate);
+    return shapes.some((shape) => this.getShapeKey(shape) === candidateKey);
+  }
+
+  getShapeKey(cells) {
+    const minX = Math.min(...cells.map((c) => c.x));
+    const minY = Math.min(...cells.map((c) => c.y));
+
+    return cells
+      .map((cell) => ({ x: cell.x - minX, y: cell.y - minY }))
+      .sort((a, b) => a.y - b.y || a.x - b.x)
+      .map((c) => `${c.x}:${c.y}`)
+      .join("|");
+  }
+
+  validateConfig() {
+    if (this.config.rows <= 0 || this.config.cols <= 0) {
+      throw new Error("Grid size harus lebih dari 0.");
+    }
+    if (this.config.minPieceSize < 1) {
+      throw new Error("minPieceSize minimal 1.");
+    }
+    if (this.config.maxPieceSize < this.config.minPieceSize) {
+      throw new Error("maxPieceSize harus >= minPieceSize.");
+    }
+  }
+}
+
+/* =====================================================================
+ * 3. UI LOGIC
+ * ===================================================================== */
+
+const $ = (id) => document.getElementById(id);
+
+const elSeed        = $("seed");
+const elRows        = $("rows");
+const elCols        = $("cols");
+const elMinSize     = $("minSize");
+const elMaxSize     = $("maxSize");
+const elMaxAttempts = $("maxAttempts");
+const elStatus      = $("status");
+const elStage       = $("stage");
+const btnGenerate   = $("btnGenerate");
+const btnExport     = $("btnExport");
+
+let currentPuzzle = null;
+let currentMeta = null;
+
+function setStatus(message, type = "") {
+  elStatus.className = "status" + (type ? " " + type : "");
+  elStatus.innerHTML = message;
+}
+
+/** Warna unik & stabil per piece id (golden angle). */
+function colorFor(id) {
+  const hue = (id * 137.508) % 360;
+  const sat = 62 + ((id * 7) % 14);
+  const light = 58 + ((id * 11) % 10);
+  return `hsl(${hue.toFixed(1)}, ${sat}%, ${light}%)`;
+}
+
+/**
+ * Bangun matriks owner: owner[y][x] = piece id
+ */
+function buildOwnerMatrix(data) {
+  const owner = Array.from({ length: data.rows }, () =>
+    new Array(data.cols).fill(-1)
+  );
+
+  for (const piece of data.pieces) {
+    for (const cell of piece.cells) {
+      if (
+        cell.y >= 0 && cell.y < data.rows &&
+        cell.x >= 0 && cell.x < data.cols
+      ) {
+        owner[cell.y][cell.x] = piece.id;
+      }
+    }
+  }
+
+  return owner;
+}
+
+function renderPuzzle(data, meta) {
+  const owner = buildOwnerMatrix(data);
+
+  // Ukuran cell adaptif
+  const maxDim = Math.max(data.rows, data.cols);
+  const cellSize = Math.max(18, Math.min(56, Math.floor(560 / maxDim)));
+  const borderWidth = cellSize >= 34 ? 3 : 2;
+
+  // Container
+  const wrap = document.createElement("div");
+
+  const grid = document.createElement("div");
+  grid.id = "grid";
+  grid.style.gridTemplateColumns = `repeat(${data.cols}, ${cellSize}px)`;
+  grid.style.gridAutoRows = `${cellSize}px`;
+
+  for (let y = 0; y < data.rows; y++) {
+    for (let x = 0; x < data.cols; x++) {
+      const id = owner[y][x];
+
+      const div = document.createElement("div");
+      div.className = "cell";
+      div.style.background = id >= 0 ? colorFor(id) : "#000";
+      div.title = id >= 0 ? `Piece ${id} • (${x}, ${y})` : `(${x}, ${y})`;
+
+      // Border tebal antar-piece (pakai inset box-shadow agar layout tidak geser)
+      const shadows = [];
+      const B = borderWidth;
+
+      const top    = y === 0            || owner[y - 1][x] !== id;
+      const bottom = y === data.rows - 1 || owner[y + 1][x] !== id;
+      const left   = x === 0            || owner[y][x - 1] !== id;
+      const right  = x === data.cols - 1 || owner[y][x + 1] !== id;
+
+      if (top)    shadows.push(`inset 0 ${B}px 0 #0b0e1a`);
+      if (bottom) shadows.push(`inset 0 -${B}px 0 #0b0e1a`);
+      if (left)   shadows.push(`inset ${B}px 0 0 #0b0e1a`);
+      if (right)  shadows.push(`inset -${B}px 0 0 #0b0e1a`);
+
+      if (shadows.length) div.style.boxShadow = shadows.join(", ");
+
+      grid.appendChild(div);
+    }
+  }
+
+  wrap.appendChild(grid);
+
+  // Meta info
+  const metaEl = document.createElement("div");
+  metaEl.className = "meta";
+  metaEl.innerHTML = `
+    <span>Seed: <b>${meta.seed}</b></span>
+    <span>Grid: <b>${data.rows} × ${data.cols}</b></span>
+    <span>Piece: <b>${data.pieces.length}</b></span>
+    <span>Min/Max: <b>${meta.minSize}/${meta.maxSize}</b></span>
+  `;
+  wrap.appendChild(metaEl);
+
+  // Legend (batasi 40 chip supaya tidak kepanjangan)
+  if (data.pieces.length <= 40) {
+    const legend = document.createElement("div");
+    legend.className = "legend";
+
+    for (const piece of data.pieces) {
+      const chip = document.createElement("span");
+      chip.className = "legend-chip";
+      chip.innerHTML = `<span class="legend-swatch" style="background:${colorFor(piece.id)}"></span>#${piece.id} (${piece.cells.length})`;
+      legend.appendChild(chip);
+    }
+
+    wrap.appendChild(legend);
+  }
+
+  elStage.innerHTML = "";
+  elStage.appendChild(wrap);
+}
+
+function downloadJSON(obj, filename) {
+  const text = JSON.stringify(obj, null, 2);
+  const blob = new Blob([text], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ---------------------------------------------------------------
+ * GENERATE
+ * --------------------------------------------------------------- */
+btnGenerate.addEventListener("click", () => {
+  const seed        = Number(elSeed.value) || 0;
+  const rows        = parseInt(elRows.value, 10);
+  const cols        = parseInt(elCols.value, 10);
+  const minSize     = parseInt(elMinSize.value, 10);
+  const maxSize     = parseInt(elMaxSize.value, 10);
+  const maxAttempts = parseInt(elMaxAttempts.value, 10);
+
+  // Validasi input
+  if (!Number.isFinite(rows) || !Number.isFinite(cols) || rows <= 0 || cols <= 0) {
+    setStatus("❌ Baris dan kolom harus angka lebih dari 0.", "error");
+    return;
+  }
+  if (!Number.isFinite(minSize) || minSize < 1) {
+    setStatus("❌ Min piece minimal 1.", "error");
+    return;
+  }
+  if (!Number.isFinite(maxSize) || maxSize < minSize) {
+    setStatus("❌ Max piece harus ≥ min piece.", "error");
+    return;
+  }
+
+  const total = rows * cols;
+  if (total < minSize) {
+    setStatus(`❌ Total cell (${total}) lebih kecil dari min piece (${minSize}).`, "error");
+    return;
+  }
+
+  btnGenerate.disabled = true;
+  setStatus("⏳ Membuat puzzle...");
+
+  // Beri kesempatan browser untuk repaint sebelum kerja berat
+  setTimeout(() => {
+    try {
+      const generator = new PuzzleGenerator(
+        {
+          rows,
+          cols,
+          minPieceSize: minSize,
+          maxPieceSize: maxSize,
+          maxAttempts: Number.isFinite(maxAttempts) && maxAttempts > 0 ? maxAttempts : 100
+        },
+        seed
+      );
+
+      const puzzle = generator.generate();
+
+      if (!puzzle) {
+        currentPuzzle = null;
+        currentMeta = null;
+        btnExport.disabled = true;
+        elStage.innerHTML =
+          '<div class="empty-state">😖 Generator gagal setelah beberapa percobaan.<br />Coba ubah seed, ukuran grid, atau min/max piece.</div>';
+        setStatus("❌ Gagal membuat puzzle. Coba seed / konfigurasi lain.", "error");
+        return;
+      }
+
+      currentPuzzle = puzzle;
+      currentMeta = { seed, minSize, maxSize };
+
+      renderPuzzle(puzzle, currentMeta);
+
+      btnExport.disabled = false;
+      setStatus(
+        `✅ Puzzle berhasil dibuat: <b>${puzzle.pieces.length}</b> piece dari ${total} cell.`,
+        "ok"
+      );
+    } catch (err) {
+      console.error(err);
+      setStatus("❌ Error: " + (err && err.message ? err.message : String(err)), "error");
+    } finally {
+      btnGenerate.disabled = false;
+    }
+  }, 20);
+});
+
+/* ---------------------------------------------------------------
+ * EXPORT
+ * --------------------------------------------------------------- */
+btnExport.addEventListener("click", () => {
+  if (!currentPuzzle || !currentMeta) {
+    setStatus("⚠️ Belum ada puzzle untuk di-export.", "error");
+    return;
+  }
+
+  const filename = `puzzle_seed${currentMeta.seed}_${currentPuzzle.rows}x${currentPuzzle.cols}.json`;
+  downloadJSON(currentPuzzle, filename);
+
+  setStatus(`💾 File <b>${filename}</b> berhasil di-export.`, "ok");
+});
+
+/* ---------------------------------------------------------------
+ * Enter = generate
+ * --------------------------------------------------------------- */
+document.querySelectorAll("input[type=number]").forEach((input) => {
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") btnGenerate.click();
+  });
+});
+</script>
+
+</body>
+</html>
